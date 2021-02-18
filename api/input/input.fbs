@@ -1,0 +1,18 @@
+namespace model.input;
+table Field {
+    value:string;
+}
+
+table Tag {
+    key:string;
+    value:string;
+}
+
+table TraceSegmentRequest {
+    traceID:string;
+    startTime:int64;
+    endTime:int64;
+    fields:[Field];
+    tags:[Tag];
+    spans:[ubyte];
+}
