@@ -41,9 +41,9 @@ func BenchmarkSparseIndex(b *testing.B) {
 		b.Run(bm.name, func(b *testing.B) {
 			var traceSize int
 			if bm.isProxy {
-				traceSize = 30000
+				traceSize = 900000
 			} else {
-				traceSize = 2000
+				traceSize = 20000
 			}
 			traces := make([]string, 0, traceSize)
 			for i := 0; i < traceSize; i++ {
