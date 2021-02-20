@@ -1,7 +1,7 @@
 package dense
 
 import (
-	"log"
+	"encoding/binary"
 
 	db "github.com/hanahmily/banyandb-research"
 	"github.com/hanahmily/banyandb-research/api/input"
@@ -17,11 +17,9 @@ type dense struct {
 func (s *dense) Write(data []byte) {
 	seg := input.GetRootAsTraceSegmentRequest(data, 0)
 	traceID := seg.TraceID()
-	segmentID := new(input.Field)
-	if !seg.Fields(segmentID, 0) {
-		log.Fatalf("failed to load segmentID")
-	}
-	key := append(traceID, segmentID.Value()...)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(seg.StartTime()))
+	key := append(traceID, b...)
 	s.db.Write(key, seg.SpansBytes())
 }
 
@@ -47,11 +45,9 @@ type compactedDense struct {
 func (c *compactedDense) Write(data []byte) {
 	seg := input.GetRootAsTraceSegmentRequest(data, 0)
 	traceID := seg.TraceID()
-	segmentID := new(input.Field)
-	if !seg.Fields(segmentID, 0) {
-		log.Fatalf("failed to load segmentID")
-	}
-	key := append(traceID, segmentID.Value()...)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(seg.StartTime()))
+	key := append(traceID, b...)
 	key = append(key, seg.SpansBytes()...)
 	c.db.Write(key, nil)
 }

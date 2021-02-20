@@ -23,10 +23,23 @@ type sparse struct {
 type memTable struct {
 	q []byte
 	startTime int64
+	base []byte
+	nq []byte
 }
 
 func (m *memTable) getID(key string) []byte {
 	return append([]byte(key), []byte(strconv.FormatInt(m.startTime, 10))...)
+}
+
+
+func (m *memTable) keyDiff(newKey []byte) []byte {
+	var i int
+	for i = 0; i < len(newKey) && i < len(m.base); i++ {
+		if newKey[i] != m.base[i] {
+			break
+		}
+	}
+	return newKey[i:]
 }
 
 
@@ -40,8 +53,10 @@ func (s *sparse) Write(data []byte) {
 	m, ok := s.memTable[key]
 	if ok {
 		m.q = append(m.q, seg.SpansBytes()...)
+		newData := m.keyDiff(seg.SpansBytes())
+		m.nq = append(m.nq, newData...)
 	} else {
-		m = &memTable{q: seg.SpansBytes(), startTime: seg.StartTime()}
+		m = &memTable{q: seg.SpansBytes(), nq: seg.SpansBytes(), base: seg.SpansBytes(), startTime: seg.StartTime()}
 		s.memTable[key] = m
 	}
 	s.index.Write(append(seg.TraceID(), m.getID(key)...), nil)
@@ -50,6 +65,7 @@ func (s *sparse) Write(data []byte) {
 		delete(s.memTable, key)
 	}
 }
+
 
 func (s *sparse) Get(traceID string) {
 	eps := make([]string, 0)

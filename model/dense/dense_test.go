@@ -26,16 +26,16 @@ func BenchmarkDenseIndex(b *testing.B) {
 			newDense(1024),
 			false,
 		},
-		{
-			"512-bytes Database compacted dense index",
-			newCompactedDense(512),
-			false,
-		},
-		{
-			"1024-bytes Database compacted dense index",
-			newCompactedDense(1024),
-			false,
-		},
+		//{
+		//	"512-bytes Database compacted dense index",
+		//	newCompactedDense(512),
+		//	false,
+		//},
+		//{
+		//	"1024-bytes Database compacted dense index",
+		//	newCompactedDense(1024),
+		//	false,
+		//},
 		{
 			"512-bytes Proxy dense index",
 			newDense(512),
@@ -46,16 +46,16 @@ func BenchmarkDenseIndex(b *testing.B) {
 			newDense(1024),
 			true,
 		},
-		{
-			"512-bytes Proxy compacted dense index",
-			newCompactedDense(512),
-			true,
-		},
-		{
-			"1024-bytes Proxy compacted dense index",
-			newCompactedDense(1024),
-			true,
-		},
+		//{
+		//	"512-bytes Proxy compacted dense index",
+		//	newCompactedDense(512),
+		//	true,
+		//},
+		//{
+		//	"1024-bytes Proxy compacted dense index",
+		//	newCompactedDense(1024),
+		//	true,
+		//},
 	}
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
@@ -70,7 +70,7 @@ func BenchmarkDenseIndex(b *testing.B) {
 				data, traceID := api.GenerateInput(bm.isProxy)
 				traces = append(traces, traceID)
 				for j := 0; j < api.SegmentVariants; j++ {
-					bytes, err := base64.StdEncoding.DecodeString(data[i % len(data)])
+					bytes, err := base64.StdEncoding.DecodeString(data[j % len(data)])
 					if err != nil {
 						log.Fatalf("failed to decode data")
 					}
