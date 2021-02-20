@@ -33,10 +33,10 @@ func (s *sparse) Write(data []byte) {
 	} else {
 		buffer = seg.SpansBytes()
 	}
+	s.index.Write(append(seg.TraceID(), key...), nil)
 	if len(buffer) > s.blockSize * 1024 {
 		k := append([]byte(key), []byte(strconv.FormatInt(time.Now().UnixNano(), 10))...)
 		s.db.Write(k, buffer)
-		s.index.Write(append(seg.TraceID(), k...), nil)
 		s.memTable[key] = nil
 	} else {
 		s.memTable[key] = buffer
@@ -64,8 +64,10 @@ func (s *sparse) Get(traceID string) {
 func (s *sparse) Finish() {
 	log.Printf("querying index elapsed: %v, data elapsed: %v", s.metricReadIndexElapsed, s.metricReadDataElapsed)
 	for key, buffer := range s.memTable {
-		s.db.Write(append([]byte(key), []byte(strconv.FormatInt(time.Now().UnixNano(), 10))...), buffer)
+		k := append([]byte(key), []byte(strconv.FormatInt(time.Now().UnixNano(), 10))...)
+		s.db.Write(k, buffer)
 	}
+	s.index.Close()
 	s.db.Close()
 }
 

@@ -17,25 +17,25 @@ func BenchmarkSparseIndex(b *testing.B) {
 		isProxy bool
 	}{
 		{
-			"512-bytes Database dense index",
+			"512-bytes Database sparse index",
 			newSparse(512),
 			false,
 		},
-		{
-			"1024-bytes Database dense index",
-			newSparse(1024),
-			false,
-		},
-		{
-			"512-bytes Proxy dense index",
-			newSparse(512),
-			true,
-		},
-		{
-			"1024-bytes Proxy dense index",
-			newSparse(1024),
-			true,
-		},
+		//{
+		//	"1024-bytes Database sparse index",
+		//	newSparse(1024),
+		//	false,
+		//},
+		//{
+		//	"512-bytes Proxy sparse index",
+		//	newSparse(512),
+		//	true,
+		//},
+		//{
+		//	"1024-bytes Proxy sparse index",
+		//	newSparse(1024),
+		//	true,
+		//},
 	}
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
