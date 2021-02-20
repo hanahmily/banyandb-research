@@ -14,11 +14,21 @@ var _ model.Model = &sparse{}
 type sparse struct {
 	db *db.DB
 	index *db.DB
-	memTable map[string][]byte
+	memTable map[string]*memTable
 	blockSize int
 	metricReadIndexElapsed time.Duration
 	metricReadDataElapsed time.Duration
 }
+
+type memTable struct {
+	q []byte
+	startTime int64
+}
+
+func (m *memTable) getID(key string) []byte {
+	return append([]byte(key), []byte(strconv.FormatInt(m.startTime, 10))...)
+}
+
 
 func (s *sparse) Write(data []byte) {
 	seg := input.GetRootAsTraceSegmentRequest(data, 0)
@@ -27,19 +37,17 @@ func (s *sparse) Write(data []byte) {
 		log.Fatalf("failed to load segmentID")
 	}
 	key := string(endpoint.Value())
-	var buffer []byte
-	if b, ok := s.memTable[key]; ok {
-		buffer = append(b, seg.SpansBytes()...)
+	m, ok := s.memTable[key]
+	if ok {
+		m.q = append(m.q, seg.SpansBytes()...)
 	} else {
-		buffer = seg.SpansBytes()
+		m = &memTable{q: seg.SpansBytes(), startTime: seg.StartTime()}
+		s.memTable[key] = m
 	}
-	s.index.Write(append(seg.TraceID(), key...), nil)
-	if len(buffer) > s.blockSize * 1024 {
-		k := append([]byte(key), []byte(strconv.FormatInt(time.Now().UnixNano(), 10))...)
-		s.db.Write(k, buffer)
-		s.memTable[key] = nil
-	} else {
-		s.memTable[key] = buffer
+	s.index.Write(append(seg.TraceID(), m.getID(key)...), nil)
+	if len(m.q) > s.blockSize * 1024 {
+		s.db.Write(m.getID(key), m.q)
+		delete(s.memTable, key)
 	}
 }
 
@@ -63,9 +71,8 @@ func (s *sparse) Get(traceID string) {
 
 func (s *sparse) Finish() {
 	log.Printf("querying index elapsed: %v, data elapsed: %v", s.metricReadIndexElapsed, s.metricReadDataElapsed)
-	for key, buffer := range s.memTable {
-		k := append([]byte(key), []byte(strconv.FormatInt(time.Now().UnixNano(), 10))...)
-		s.db.Write(k, buffer)
+	for key, m := range s.memTable {
+		s.db.Write(m.getID(key), m.q)
 	}
 	s.index.Close()
 	s.db.Close()
@@ -74,5 +81,5 @@ func (s *sparse) Finish() {
 func newSparse(blockSize int) model.Model {
 	newDB := db.NewDB(blockSize)
 	indexDB := db.NewDB(blockSize)
-	return &sparse{db: &newDB, index: &indexDB, memTable: make(map[string][]byte, 10), blockSize: blockSize}
+	return &sparse{db: &newDB, index: &indexDB, memTable: make(map[string]*memTable, 10), blockSize: blockSize}
 }
