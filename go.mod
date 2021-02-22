@@ -3,6 +3,7 @@ module github.com/hanahmily/banyandb-research
 go 1.14
 
 require (
+	github.com/DataDog/zstd v1.4.1
 	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/dustin/go-humanize v1.0.0
 	github.com/frankban/quicktest v1.11.3 // indirect

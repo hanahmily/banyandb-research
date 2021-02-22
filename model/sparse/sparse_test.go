@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	db "github.com/hanahmily/banyandb-research"
 	"github.com/hanahmily/banyandb-research/api"
 	"github.com/hanahmily/banyandb-research/model"
 )
@@ -18,22 +19,62 @@ func BenchmarkSparseIndex(b *testing.B) {
 	}{
 		{
 			"512-bytes Database sparse index",
-			newSparse(512),
+			newSparse(512, db.CompressionAlgorithm_Snappy),
 			false,
 		},
 		{
 			"1024-bytes Database sparse index",
-			newSparse(1024),
+			newSparse(1024, db.CompressionAlgorithm_Snappy),
 			false,
 		},
 		{
 			"512-bytes Proxy sparse index",
-			newSparse(512),
+			newSparse(512, db.CompressionAlgorithm_Snappy),
 			true,
 		},
 		{
 			"1024-bytes Proxy sparse index",
-			newSparse(1024),
+			newSparse(1024, db.CompressionAlgorithm_Snappy),
+			true,
+		},
+		{
+			"512-bytes Database sparse index",
+			newSparse(512, db.CompressionAlgorithm_LZ4),
+			false,
+		},
+		{
+			"1024-bytes Database sparse index",
+			newSparse(1024, db.CompressionAlgorithm_LZ4),
+			false,
+		},
+		{
+			"512-bytes Proxy sparse index",
+			newSparse(512, db.CompressionAlgorithm_LZ4),
+			true,
+		},
+		{
+			"1024-bytes Proxy sparse index",
+			newSparse(1024, db.CompressionAlgorithm_LZ4),
+			true,
+		},
+		{
+			"512-bytes Database sparse index",
+			newSparse(512, db.CompressionAlgorithm_ZSTD),
+			false,
+		},
+		{
+			"1024-bytes Database sparse index",
+			newSparse(1024, db.CompressionAlgorithm_ZSTD),
+			false,
+		},
+		{
+			"512-bytes Proxy sparse index",
+			newSparse(512, db.CompressionAlgorithm_ZSTD),
+			true,
+		},
+		{
+			"1024-bytes Proxy sparse index",
+			newSparse(1024, db.CompressionAlgorithm_ZSTD),
 			true,
 		},
 	}

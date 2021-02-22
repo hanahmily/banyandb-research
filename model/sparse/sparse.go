@@ -94,8 +94,8 @@ func (s *sparse) Finish() {
 	s.db.Close()
 }
 
-func newSparse(blockSize int) model.Model {
-	newDB := db.NewDB(blockSize)
-	indexDB := db.NewDB(blockSize)
+func newSparse(blockSize int, algorithm db.CompressionAlgorithm) model.Model {
+	newDB := db.NewDB(blockSize, algorithm)
+	indexDB := db.NewDB(blockSize, algorithm)
 	return &sparse{db: &newDB, index: &indexDB, memTable: make(map[string]*memTable, 10), blockSize: blockSize}
 }

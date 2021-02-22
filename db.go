@@ -6,18 +6,21 @@ import (
 	"log"
 	"strings"
 
+	"github.com/DataDog/zstd"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dustin/go-humanize"
 	"github.com/golang/snappy"
+	"github.com/pierrec/lz4"
 
 	"github.com/hanahmily/banyandb-research/api"
 )
 
 type DB struct {
-	db *badger.DB
-	path string
-	writtenKeySize uint64
+	db               *badger.DB
+	path             string
+	writtenKeySize   uint64
 	writtenValueSize uint64
+	algorithm        CompressionAlgorithm
 }
 
 
@@ -41,7 +44,14 @@ func (l *mockLogger) Debugf(f string, v ...interface{}) {
 	l.output = fmt.Sprintf("DEBUG: "+f, v...)
 }
 
-func NewDB(blockSize int) DB {
+type CompressionAlgorithm int32
+const (
+	CompressionAlgorithm_Snappy = 1
+	CompressionAlgorithm_LZ4 = 2
+	CompressionAlgorithm_ZSTD = 3
+)
+
+func NewDB(blockSize int, algorithm CompressionAlgorithm) DB {
 	path, err := ioutil.TempDir("", "banyandb")
 	if err != nil {
 		log.Fatalf("failed to create tmp dir: %v", err)
@@ -58,20 +68,33 @@ func NewDB(blockSize int) DB {
 	if err != nil {
 		log.Fatalf("failed to open badger database: %v", err)
 	}
-	return DB{db:db, path: path}
+	return DB{db:db, path: path, algorithm: algorithm}
 }
 
 func (db *DB) Write(key, val []byte) {
 	db.writtenKeySize = db.writtenKeySize + uint64(len(key))
 	if val != nil {
 		db.writtenValueSize = db.writtenValueSize + uint64(len(val))
-		val = snappy.Encode(nil, val)
+		switch db.algorithm {
+		case CompressionAlgorithm_Snappy:
+			val = snappy.Encode(nil, val)
+		case CompressionAlgorithm_LZ4:
+			compressedSpans := make([]byte, len(val))
+			l, err := lz4.CompressBlock(val, compressedSpans, nil)
+			if err != nil {
+				panic(err)
+			}	
+			val = val[:l]
+		case CompressionAlgorithm_ZSTD:
+			var err error
+			val, err = zstd.Compress(nil, val)
+			if err != nil {
+				panic(err)
+			}	
+		}
+		
 	}
-	//compressedSpans := make([]byte, len(val))
-	//l, err := lz4.CompressBlock(val, compressedSpans, nil)
-	//if err != nil {
-	//	panic(err)
-	//}
+	
 	
 	err := db.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(key, val)

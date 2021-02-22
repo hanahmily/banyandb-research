@@ -32,7 +32,7 @@ func (s *dense) Finish() {
 }
 
 func newDense(blockSize int) model.Model {
-	newDb:= db.NewDB(blockSize)
+	newDb:= db.NewDB(blockSize, db.CompressionAlgorithm_Snappy)
 	return &dense{db: &newDb}
 }
 
@@ -61,7 +61,7 @@ func (c *compactedDense) Finish() {
 }
 
 func newCompactedDense(blockSize int) model.Model {
-	newDb:= db.NewDB(blockSize)
+	newDb:= db.NewDB(blockSize, db.CompressionAlgorithm_Snappy)
 	return &compactedDense{db: &newDb}
 }
 
