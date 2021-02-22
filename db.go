@@ -21,6 +21,7 @@ type DB struct {
 	writtenKeySize   uint64
 	writtenValueSize uint64
 	algorithm        CompressionAlgorithm
+	blockSize        int
 }
 
 
@@ -68,7 +69,7 @@ func NewDB(blockSize int, algorithm CompressionAlgorithm) DB {
 	if err != nil {
 		log.Fatalf("failed to open badger database: %v", err)
 	}
-	return DB{db:db, path: path, algorithm: algorithm}
+	return DB{db:db, path: path, algorithm: algorithm, blockSize: blockSize}
 }
 
 func (db *DB) Write(key, val []byte) {
@@ -154,7 +155,17 @@ func (db *DB) Read(prefix string, keyOnly bool, extractor ValueExtractor) {
 				continue
 			}
 			err := item.Value(func(v []byte) error {
-				vv, _ := snappy.Decode(nil, v)
+				var vv []byte
+				switch db.algorithm {
+				case CompressionAlgorithm_Snappy:
+					vv, _ = snappy.Decode(nil, v)
+				case CompressionAlgorithm_LZ4:
+					unCompressedSpans := make([]byte, db.blockSize)
+					l, _ := lz4.UncompressBlock(v, unCompressedSpans)
+					vv = unCompressedSpans[:l]
+				case CompressionAlgorithm_ZSTD:
+					vv, _ = zstd.Decompress(nil, v)
+				}
 				if extractor != nil {
 					extractor(k, vv)
 				}
