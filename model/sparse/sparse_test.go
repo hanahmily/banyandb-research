@@ -18,62 +18,62 @@ func BenchmarkSparseIndex(b *testing.B) {
 		isProxy bool
 	}{
 		{
-			"512-bytes Database sparse index",
+			"Snappy 512-bytes Database sparse index",
 			newSparse(512, db.CompressionAlgorithm_Snappy),
 			false,
 		},
 		{
-			"1024-bytes Database sparse index",
+			"Snappy 1024-bytes Database sparse index",
 			newSparse(1024, db.CompressionAlgorithm_Snappy),
 			false,
 		},
 		{
-			"512-bytes Proxy sparse index",
+			"Snappy 512-bytes Proxy sparse index",
 			newSparse(512, db.CompressionAlgorithm_Snappy),
 			true,
 		},
 		{
-			"1024-bytes Proxy sparse index",
+			"Snappy 1024-bytes Proxy sparse index",
 			newSparse(1024, db.CompressionAlgorithm_Snappy),
 			true,
 		},
 		{
-			"512-bytes Database sparse index",
+			"LZ4 512-bytes Database sparse index",
 			newSparse(512, db.CompressionAlgorithm_LZ4),
 			false,
 		},
 		{
-			"1024-bytes Database sparse index",
+			"LZ4 1024-bytes Database sparse index",
 			newSparse(1024, db.CompressionAlgorithm_LZ4),
 			false,
 		},
 		{
-			"512-bytes Proxy sparse index",
+			"LZ4 512-bytes Proxy sparse index",
 			newSparse(512, db.CompressionAlgorithm_LZ4),
 			true,
 		},
 		{
-			"1024-bytes Proxy sparse index",
+			"LZ4 1024-bytes Proxy sparse index",
 			newSparse(1024, db.CompressionAlgorithm_LZ4),
 			true,
 		},
 		{
-			"512-bytes Database sparse index",
+			"ZSTD 512-bytes Database sparse index",
 			newSparse(512, db.CompressionAlgorithm_ZSTD),
 			false,
 		},
 		{
-			"1024-bytes Database sparse index",
+			"ZSTD 1024-bytes Database sparse index",
 			newSparse(1024, db.CompressionAlgorithm_ZSTD),
 			false,
 		},
 		{
-			"512-bytes Proxy sparse index",
+			"ZSTD 512-bytes Proxy sparse index",
 			newSparse(512, db.CompressionAlgorithm_ZSTD),
 			true,
 		},
 		{
-			"1024-bytes Proxy sparse index",
+			"ZSTD 1024-bytes Proxy sparse index",
 			newSparse(1024, db.CompressionAlgorithm_ZSTD),
 			true,
 		},
