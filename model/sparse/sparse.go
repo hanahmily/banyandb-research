@@ -18,6 +18,7 @@ type sparse struct {
 	blockSize int
 	metricReadIndexElapsed time.Duration
 	metricReadDataElapsed time.Duration
+	groupByField int
 }
 
 type memTable struct {
@@ -46,7 +47,7 @@ func (m *memTable) keyDiff(newKey []byte) []byte {
 func (s *sparse) Write(data []byte) {
 	seg := input.GetRootAsTraceSegmentRequest(data, 0)
 	endpoint := new(input.Field)
-	if !seg.Fields(endpoint, 3) {
+	if !seg.Fields(endpoint, s.groupByField) {
 		log.Fatalf("failed to load segmentID")
 	}
 	key := string(endpoint.Value())
@@ -94,8 +95,12 @@ func (s *sparse) Finish() {
 	s.db.Close()
 }
 
+func (s *sparse) groupBy(index int) {
+	s.groupByField = index
+}
+
 func newSparse(blockSize int, algorithm db.CompressionAlgorithm) model.Model {
 	newDB := db.NewDB(blockSize, algorithm)
 	indexDB := db.NewDB(blockSize, algorithm)
-	return &sparse{db: &newDB, index: &indexDB, memTable: make(map[string]*memTable, 10), blockSize: blockSize}
+	return &sparse{db: &newDB, index: &indexDB, memTable: make(map[string]*memTable, 10), blockSize: blockSize, groupByField: 3}
 }
