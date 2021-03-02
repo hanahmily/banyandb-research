@@ -82,7 +82,7 @@ func BenchmarkSparseMixIndex(b *testing.B) {
 		b.Run(bm.name, func(b *testing.B) {
 			var traceSize int
 			if bm.isProxy {
-				traceSize = 900000
+				traceSize = 20000
 			} else {
 				traceSize = 20000
 			}
